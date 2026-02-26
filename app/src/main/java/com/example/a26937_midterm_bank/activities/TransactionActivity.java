@@ -63,8 +63,6 @@ public class TransactionActivity extends AppCompatActivity {
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinnerType.setAdapter(typeAdapter);
 
-        loadAccounts();
-
         btnSave.setOnClickListener(v -> saveTransaction());
     }
 
@@ -119,8 +117,8 @@ public class TransactionActivity extends AppCompatActivity {
             return;
         }
 
-        if (amount < 0) {
-            Toast.makeText(this, "Amount cannot be negative", Toast.LENGTH_SHORT).show();
+        if (amount <= 0) {
+            Toast.makeText(this, "Amount must be greater than zero", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -130,32 +128,43 @@ public class TransactionActivity extends AppCompatActivity {
         }
 
         int selectedPosition = spinnerAccount.getSelectedItemPosition();
-        BankAccount account = accounts.get(selectedPosition);
+        BankAccount selectedAccount = accounts.get(selectedPosition);
+        final int accountId = selectedAccount.getId();
+        final double currentBalance = selectedAccount.getBalance();
 
-        if (type.equals("Withdraw") && account.getBalance() < amount) {
+        if (type.equals("Withdraw") && currentBalance < amount) {
             Toast.makeText(this, "Insufficient balance", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        final double finalAmount = amount;
         executorService.execute(() -> {
             if (dbHelper == null) {
                 dbHelper = new DatabaseHelper(this);
             }
+            
+            // Get fresh account data from database
+            BankAccount account = dbHelper.getAccountById(accountId);
+            if (account == null) {
+                mainHandler.post(() -> Toast.makeText(this, "Account not found", Toast.LENGTH_SHORT).show());
+                return;
+            }
+
             String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
-            Transaction transaction = new Transaction(account.getId(), type, amount, date);
+            Transaction transaction = new Transaction(account.getId(), type, finalAmount, date);
             long result = dbHelper.insertTransaction(transaction);
 
             if (result > 0) {
                 double newBalance = type.equals("Deposit") ? 
-                        account.getBalance() + amount : account.getBalance() - amount;
+                        account.getBalance() + finalAmount : account.getBalance() - finalAmount;
                 account.setBalance(newBalance);
                 int updateResult = dbHelper.updateAccount(account);
 
                 mainHandler.post(() -> {
                     if (updateResult > 0) {
                         Toast.makeText(this, "Transaction completed successfully", Toast.LENGTH_SHORT).show();
-                        loadAccounts();
                         clearFields();
+                        loadAccounts();
                     } else {
                         Toast.makeText(this, "Transaction saved but balance update failed", Toast.LENGTH_SHORT).show();
                     }
