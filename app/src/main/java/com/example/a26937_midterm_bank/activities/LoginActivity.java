@@ -2,6 +2,8 @@ package com.example.a26937_midterm_bank.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -11,12 +13,16 @@ import com.example.a26937_midterm_bank.R;
 import com.example.a26937_midterm_bank.database.DatabaseHelper;
 import com.example.a26937_midterm_bank.models.User;
 import com.example.a26937_midterm_bank.utils.SessionManager;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText etUsername, etPassword;
     private Button btnLogin;
     private DatabaseHelper dbHelper;
     private SessionManager sessionManager;
+    private ExecutorService executorService;
+    private Handler mainHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,6 +35,8 @@ public class LoginActivity extends AppCompatActivity {
 
         dbHelper = new DatabaseHelper(this);
         sessionManager = new SessionManager(this);
+        executorService = Executors.newSingleThreadExecutor();
+        mainHandler = new Handler(Looper.getMainLooper());
 
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
@@ -46,14 +54,26 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        User user = dbHelper.authenticateUser(username, password);
-        if (user != null) {
-            sessionManager.createLoginSession(user.getId(), user.getUsername(), user.getFullName());
-            Toast.makeText(this, "Welcome " + user.getFullName(), Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-            finish();
-        } else {
-            Toast.makeText(this, "Invalid username or password", Toast.LENGTH_SHORT).show();
+        executorService.execute(() -> {
+            User user = dbHelper.authenticateUser(username, password);
+            mainHandler.post(() -> {
+                if (user != null) {
+                    sessionManager.createLoginSession(user.getId(), user.getUsername(), user.getFullName());
+                    Toast.makeText(this, "Welcome " + user.getFullName(), Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(this, "Invalid username or password", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (executorService != null) {
+            executorService.shutdown();
         }
     }
 }
