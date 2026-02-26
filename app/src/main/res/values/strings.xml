@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">26937_midterm_bank</string>
+    
+    <string-array name="gender_array">
+        <item>Male</item>
+        <item>Female</item>
+        <item>Other</item>
+    </string-array>
+    
+    <string-array name="transaction_types">
+        <item>Deposit</item>
+        <item>Withdraw</item>
+    </string-array>
+    
+    <string-array name="currency_types">
+        <item>USD</item>
+        <item>EUR</item>
+        <item>RWF</item>
+        <item>GBP</item>
+    </string-array>
+</resources>
