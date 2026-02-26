@@ -7,9 +7,10 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.a26937_midterm_bank.activities.AccountActivity;
@@ -46,9 +47,13 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Dashboard");
-        }
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        ImageButton btnMenu = findViewById(R.id.btnMenu);
+        TextView tvToolbarTitle = findViewById(R.id.tvToolbarTitle);
+        
+        tvToolbarTitle.setText("Dashboard");
+        btnBack.setVisibility(android.view.View.GONE);
+        btnMenu.setOnClickListener(v -> showMenu(v));
 
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
@@ -93,6 +98,33 @@ public class MainActivity extends AppCompatActivity {
         networkReceiver = new NetworkReceiver();
     }
 
+    private void showMenu(android.view.View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        popup.getMenu().add(0, 1, 0, "Manage Customers");
+        popup.getMenu().add(0, 2, 0, "Manage Accounts");
+        popup.getMenu().add(0, 3, 0, "Manage Transactions");
+        popup.getMenu().add(0, 4, 0, "Settings");
+        popup.getMenu().add(0, 5, 0, "Logout");
+        popup.setOnMenuItemClickListener(item -> {
+            int id = item.getItemId();
+            if (id == 1) {
+                startActivity(new Intent(MainActivity.this, CustomerActivity.class));
+            } else if (id == 2) {
+                startActivity(new Intent(MainActivity.this, AccountActivity.class));
+            } else if (id == 3) {
+                startActivity(new Intent(MainActivity.this, TransactionActivity.class));
+            } else if (id == 4) {
+                startActivity(new Intent(MainActivity.this, SettingsActivity.class));
+            } else if (id == 5) {
+                sessionManager.logout();
+                startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                finish();
+            }
+            return true;
+        });
+        popup.show();
+    }
+
     private void loadStatistics() {
         executorService.execute(() -> {
             if (dbHelper == null) {
@@ -110,24 +142,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_logout) {
-            sessionManager.logout();
-            startActivity(new Intent(MainActivity.this, LoginActivity.class));
-            finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
+@Override
     protected void onResume() {
         super.onResume();
         if (sessionManager.isLoggedIn()) {

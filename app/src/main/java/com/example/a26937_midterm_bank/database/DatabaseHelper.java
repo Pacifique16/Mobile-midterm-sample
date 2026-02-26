@@ -19,7 +19,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_USER = "User";
     private static final String TABLE_CUSTOMER = "Customer";
     private static final String TABLE_ACCOUNT = "BankAccount";
-    private static final String TABLE_TRANSACTION = "Transaction";
+    private static final String TABLE_TRANSACTION = "[Transaction]";
 
     public DatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -49,7 +49,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     "status TEXT DEFAULT 'ACTIVE', " +
                     "FOREIGN KEY(customerId) REFERENCES " + TABLE_CUSTOMER + "(id))");
 
-            db.execSQL("CREATE TABLE " + TABLE_TRANSACTION + " (" +
+            db.execSQL("CREATE TABLE [Transaction] (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "accountId INTEGER NOT NULL, " +
                     "type TEXT NOT NULL, " +
@@ -395,7 +395,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db = this.getWritableDatabase();
             
             // Ensure transaction table exists
-            db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_TRANSACTION + " (" +
+            db.execSQL("CREATE TABLE IF NOT EXISTS [Transaction] (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     "accountId INTEGER NOT NULL, " +
                     "type TEXT NOT NULL, " +

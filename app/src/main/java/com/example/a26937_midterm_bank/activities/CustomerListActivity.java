@@ -4,9 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.view.MenuItem;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.example.a26937_midterm_bank.R;
@@ -21,7 +22,6 @@ import java.util.concurrent.Executors;
 public class CustomerListActivity extends AppCompatActivity {
     private ListView listView;
     private DatabaseHelper dbHelper;
-    private Button btnExportCSV;
     private ExecutorService executorService;
     private Handler mainHandler;
 
@@ -30,24 +30,23 @@ public class CustomerListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_customer_list);
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Customer List");
-        }
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        ImageButton btnMenu = findViewById(R.id.btnMenu);
+        TextView tvToolbarTitle = findViewById(R.id.tvToolbarTitle);
+        
+        tvToolbarTitle.setText("Customer List");
+        btnBack.setOnClickListener(v -> finish());
+        btnMenu.setOnClickListener(v -> showMenu(v));
 
         dbHelper = new DatabaseHelper(this);
         listView = findViewById(R.id.listViewCustomers);
-        btnExportCSV = findViewById(R.id.btnExportCSV);
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
 
-        // Initialize database on background
         executorService.execute(() -> {
             dbHelper = new DatabaseHelper(this);
             mainHandler.post(this::loadCustomers);
         });
-
-        btnExportCSV.setOnClickListener(v -> exportToCSV());
         
         listView.setOnItemClickListener((parent, view, position, id) -> {
             Customer customer = (Customer) parent.getItemAtPosition(position);
@@ -57,22 +56,23 @@ public class CustomerListActivity extends AppCompatActivity {
         });
     }
 
+    private void showMenu(android.view.View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        popup.getMenu().add(0, 1, 0, "Export to CSV");
+        popup.setOnMenuItemClickListener(item -> {
+            exportToCSV();
+            return true;
+        });
+        popup.show();
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         loadCustomers();
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
-            finish();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void loadCustomers() {
+private void loadCustomers() {
         executorService.execute(() -> {
             if (dbHelper == null) {
                 dbHelper = new DatabaseHelper(this);
