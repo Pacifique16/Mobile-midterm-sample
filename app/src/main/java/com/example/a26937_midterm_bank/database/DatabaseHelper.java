@@ -14,7 +14,7 @@ import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "BankManagement.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     private static final String TABLE_USER = "User";
     private static final String TABLE_CUSTOMER = "Customer";
@@ -294,8 +294,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public int updateAccount(BankAccount account) {
+        SQLiteDatabase db = null;
         try {
-            SQLiteDatabase db = this.getWritableDatabase();
+            db = this.getWritableDatabase();
             ContentValues values = new ContentValues();
             values.put("accountNumber", account.getAccountNumber());
             values.put("balance", account.getBalance());
@@ -303,8 +304,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             if (account.getStatus() != null) {
                 values.put("status", account.getStatus());
             }
-            return db.update(TABLE_ACCOUNT, values, "id = ?", new String[]{String.valueOf(account.getId())});
+            int result = db.update(TABLE_ACCOUNT, values, "id = ?", new String[]{String.valueOf(account.getId())});
+            android.util.Log.d("DatabaseHelper", "Update account result: " + result + " for accountId: " + account.getId() + " new balance: " + account.getBalance());
+            return result;
         } catch (Exception e) {
+            android.util.Log.e("DatabaseHelper", "Error updating account", e);
             e.printStackTrace();
             return 0;
         }
@@ -386,15 +390,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     public long insertTransaction(Transaction transaction) {
+        SQLiteDatabase db = null;
         try {
-            SQLiteDatabase db = this.getWritableDatabase();
+            db = this.getWritableDatabase();
+            
+            // Ensure transaction table exists
+            db.execSQL("CREATE TABLE IF NOT EXISTS " + TABLE_TRANSACTION + " (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    "accountId INTEGER NOT NULL, " +
+                    "type TEXT NOT NULL, " +
+                    "amount REAL NOT NULL, " +
+                    "transactionDate TEXT NOT NULL, " +
+                    "FOREIGN KEY(accountId) REFERENCES " + TABLE_ACCOUNT + "(id))");
+            
             ContentValues values = new ContentValues();
             values.put("accountId", transaction.getAccountId());
             values.put("type", transaction.getType());
             values.put("amount", transaction.getAmount());
             values.put("transactionDate", transaction.getTransactionDate());
-            return db.insert(TABLE_TRANSACTION, null, values);
+            long result = db.insert(TABLE_TRANSACTION, null, values);
+            android.util.Log.d("DatabaseHelper", "Insert transaction result: " + result + " for accountId: " + transaction.getAccountId());
+            return result;
         } catch (Exception e) {
+            android.util.Log.e("DatabaseHelper", "Error inserting transaction", e);
             e.printStackTrace();
             return -1;
         }
