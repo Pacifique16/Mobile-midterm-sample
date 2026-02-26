@@ -36,9 +36,13 @@ public class CustomerActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Manage Customers");
         }
 
-        dbHelper = new DatabaseHelper(this);
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
+
+        // Initialize database on background
+        executorService.execute(() -> {
+            dbHelper = new DatabaseHelper(this);
+        });
 
         etFullName = findViewById(R.id.etFullName);
         etPhone = findViewById(R.id.etPhone);
@@ -65,6 +69,9 @@ public class CustomerActivity extends AppCompatActivity {
         if (intent.hasExtra("customer_id")) {
             int customerId = intent.getIntExtra("customer_id", -1);
             executorService.execute(() -> {
+                if (dbHelper == null) {
+                    dbHelper = new DatabaseHelper(this);
+                }
                 Customer customer = dbHelper.getCustomerById(customerId);
                 mainHandler.post(() -> {
                     editingCustomer = customer;
@@ -113,6 +120,9 @@ public class CustomerActivity extends AppCompatActivity {
         }
 
         executorService.execute(() -> {
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             if (editingCustomer != null) {
                 editingCustomer.setFullName(fullName);
                 editingCustomer.setPhone(phone);

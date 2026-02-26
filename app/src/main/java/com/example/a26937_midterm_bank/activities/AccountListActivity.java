@@ -30,12 +30,15 @@ public class AccountListActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Account List");
         }
 
-        dbHelper = new DatabaseHelper(this);
         listView = findViewById(R.id.listViewAccounts);
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
 
-        loadAccounts();
+        // Initialize database on background
+        executorService.execute(() -> {
+            dbHelper = new DatabaseHelper(this);
+            mainHandler.post(this::loadAccounts);
+        });
     }
 
     @Override
@@ -49,6 +52,9 @@ public class AccountListActivity extends AppCompatActivity {
 
     private void loadAccounts() {
         executorService.execute(() -> {
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             List<BankAccount> accounts = dbHelper.getAllAccountsWithCustomers();
             mainHandler.post(() -> {
                 AccountAdapter adapter = new AccountAdapter(this, accounts);

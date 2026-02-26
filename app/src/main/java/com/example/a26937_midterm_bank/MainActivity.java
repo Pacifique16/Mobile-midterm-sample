@@ -50,7 +50,6 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Dashboard");
         }
 
-        dbHelper = new DatabaseHelper(this);
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
 
@@ -69,7 +68,11 @@ public class MainActivity extends AppCompatActivity {
         tvBankName.setText(bankName);
         tvWelcome.setText("Welcome, " + sessionManager.getFullName());
 
-        loadStatistics();
+        // Initialize database on background thread
+        executorService.execute(() -> {
+            dbHelper = new DatabaseHelper(this);
+            mainHandler.post(this::loadStatistics);
+        });
 
         btnManageCustomers.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, CustomerActivity.class));
@@ -92,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadStatistics() {
         executorService.execute(() -> {
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             int totalCustomers = dbHelper.getTotalCustomers();
             int totalAccounts = dbHelper.getTotalAccounts();
             double totalBalance = dbHelper.getTotalBalance();

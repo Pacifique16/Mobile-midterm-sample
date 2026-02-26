@@ -41,7 +41,11 @@ public class CustomerListActivity extends AppCompatActivity {
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
 
-        loadCustomers();
+        // Initialize database on background
+        executorService.execute(() -> {
+            dbHelper = new DatabaseHelper(this);
+            mainHandler.post(this::loadCustomers);
+        });
 
         btnExportCSV.setOnClickListener(v -> exportToCSV());
         
@@ -70,6 +74,9 @@ public class CustomerListActivity extends AppCompatActivity {
 
     private void loadCustomers() {
         executorService.execute(() -> {
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             List<Customer> customers = dbHelper.getAllCustomers();
             mainHandler.post(() -> {
                 CustomerAdapter adapter = new CustomerAdapter(this, customers);
@@ -80,6 +87,9 @@ public class CustomerListActivity extends AppCompatActivity {
 
     private void exportToCSV() {
         executorService.execute(() -> {
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             List<Customer> customers = dbHelper.getAllCustomers();
             if (customers.isEmpty()) {
                 mainHandler.post(() -> Toast.makeText(this, "No customers to export", Toast.LENGTH_SHORT).show());

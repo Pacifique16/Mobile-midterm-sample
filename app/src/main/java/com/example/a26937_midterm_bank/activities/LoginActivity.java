@@ -33,7 +33,6 @@ public class LoginActivity extends AppCompatActivity {
             getSupportActionBar().hide();
         }
 
-        dbHelper = new DatabaseHelper(this);
         sessionManager = new SessionManager(this);
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
@@ -41,6 +40,11 @@ public class LoginActivity extends AppCompatActivity {
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
+
+        // Initialize database on background thread
+        executorService.execute(() -> {
+            dbHelper = new DatabaseHelper(this);
+        });
 
         btnLogin.setOnClickListener(v -> login());
     }
@@ -55,6 +59,10 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         executorService.execute(() -> {
+            // Ensure dbHelper is initialized
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             User user = dbHelper.authenticateUser(username, password);
             mainHandler.post(() -> {
                 if (user != null) {

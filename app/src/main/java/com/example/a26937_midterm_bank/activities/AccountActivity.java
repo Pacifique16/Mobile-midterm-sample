@@ -39,9 +39,14 @@ public class AccountActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Manage Accounts");
         }
 
-        dbHelper = new DatabaseHelper(this);
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
+
+        // Initialize database on background
+        executorService.execute(() -> {
+            dbHelper = new DatabaseHelper(this);
+            mainHandler.post(this::loadCustomers);
+        });
 
         etAccountNumber = findViewById(R.id.etAccountNumber);
         etBalance = findViewById(R.id.etBalance);
@@ -70,6 +75,9 @@ public class AccountActivity extends AppCompatActivity {
 
     private void loadCustomers() {
         executorService.execute(() -> {
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             List<Customer> loadedCustomers = dbHelper.getAllCustomers();
             mainHandler.post(() -> {
                 customers = loadedCustomers;
@@ -121,6 +129,9 @@ public class AccountActivity extends AppCompatActivity {
         int customerId = customers.get(selectedPosition).getId();
 
         executorService.execute(() -> {
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             BankAccount account = new BankAccount(accountNumber, balance, customerId, "ACTIVE");
             long result = dbHelper.insertAccount(account);
 

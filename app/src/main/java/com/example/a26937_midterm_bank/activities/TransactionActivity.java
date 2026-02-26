@@ -43,9 +43,14 @@ public class TransactionActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Manage Transactions");
         }
 
-        dbHelper = new DatabaseHelper(this);
         executorService = Executors.newSingleThreadExecutor();
         mainHandler = new Handler(Looper.getMainLooper());
+
+        // Initialize database on background
+        executorService.execute(() -> {
+            dbHelper = new DatabaseHelper(this);
+            mainHandler.post(this::loadAccounts);
+        });
 
         spinnerAccount = findViewById(R.id.spinnerAccount);
         spinnerType = findViewById(R.id.spinnerType);
@@ -74,6 +79,9 @@ public class TransactionActivity extends AppCompatActivity {
 
     private void loadAccounts() {
         executorService.execute(() -> {
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             List<BankAccount> loadedAccounts = dbHelper.getAllAccountsWithCustomers();
             mainHandler.post(() -> {
                 accounts = loadedAccounts;
@@ -130,6 +138,9 @@ public class TransactionActivity extends AppCompatActivity {
         }
 
         executorService.execute(() -> {
+            if (dbHelper == null) {
+                dbHelper = new DatabaseHelper(this);
+            }
             String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
             Transaction transaction = new Transaction(account.getId(), type, amount, date);
             long result = dbHelper.insertTransaction(transaction);
