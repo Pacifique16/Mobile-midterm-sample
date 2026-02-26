@@ -7,6 +7,39 @@ A comprehensive Bank Management Android Application that manages customers, bank
 - **Student ID**: 26937
 - **Project Name**: 26937_midterm_bank
 
+## Screenshots
+
+<div align="center">
+
+### Login Screen
+<img src="images/login.png" width="300" alt="Login Screen"/>
+
+### Dashboard
+<img src="images/dashboard.png" width="300" alt="Dashboard"/>
+
+### Manage Customer
+<img src="images/manage costomer.png" width="300" alt="Manage Customer"/>
+
+### Customer List
+<img src="images/customer list.png" width="300" alt="Customer List"/>
+
+### Edit Customer
+<img src="images/edit customer.png" width="300" alt="Edit Customer"/>
+
+### Manage Accounts
+<img src="images/manage accounts.png" width="300" alt="Manage Accounts"/>
+
+### View Accounts List
+<img src="images/view accounts list.png" width="300" alt="View Accounts List"/>
+
+### Deposit or Withdraw
+<img src="images/deposit or withdraw amount.png" width="300" alt="Deposit or Withdraw"/>
+
+### Settings
+<img src="images/settings.png" width="300" alt="Settings"/>
+
+</div>
+
 ## Features
 
 ### 1. Multi-Screen Navigation (15 Marks)
@@ -110,6 +143,9 @@ com.example.a26937_midterm_bank/
 ## Installation & Setup
 
 1. Clone the repository
+   ```bash
+   git clone https://gitlab.com/harerimanapacifique95/26937_midterm_bank.git
+   ```
 2. Open project in Android Studio
 3. Sync Gradle files
 4. Run on emulator or physical device (API 24+)
