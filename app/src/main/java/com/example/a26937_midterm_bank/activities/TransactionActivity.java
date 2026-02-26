@@ -3,6 +3,7 @@ package com.example.a26937_midterm_bank.activities;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -143,22 +144,33 @@ public class TransactionActivity extends AppCompatActivity {
                 dbHelper = new DatabaseHelper(this);
             }
             
+            Log.d("Transaction", "Starting transaction for account ID: " + accountId);
+            
             // Get fresh account data from database
             BankAccount account = dbHelper.getAccountById(accountId);
             if (account == null) {
+                Log.e("Transaction", "Account not found: " + accountId);
                 mainHandler.post(() -> Toast.makeText(this, "Account not found", Toast.LENGTH_SHORT).show());
                 return;
             }
 
+            Log.d("Transaction", "Current balance: " + account.getBalance());
+            
             String date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
             Transaction transaction = new Transaction(account.getId(), type, finalAmount, date);
             long result = dbHelper.insertTransaction(transaction);
 
+            Log.d("Transaction", "Insert transaction result: " + result);
+
             if (result > 0) {
                 double newBalance = type.equals("Deposit") ? 
                         account.getBalance() + finalAmount : account.getBalance() - finalAmount;
+                        
+                Log.d("Transaction", "New balance: " + newBalance);
                 account.setBalance(newBalance);
                 int updateResult = dbHelper.updateAccount(account);
+                
+                Log.d("Transaction", "Update account result: " + updateResult);
 
                 mainHandler.post(() -> {
                     if (updateResult > 0) {
@@ -170,6 +182,7 @@ public class TransactionActivity extends AppCompatActivity {
                     }
                 });
             } else {
+                Log.e("Transaction", "Failed to insert transaction");
                 mainHandler.post(() -> Toast.makeText(this, "Transaction failed", Toast.LENGTH_SHORT).show());
             }
         });

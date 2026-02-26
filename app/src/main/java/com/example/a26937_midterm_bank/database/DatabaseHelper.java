@@ -358,15 +358,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     public BankAccount getAccountById(int id) {
         try {
+            ensureAccountStatusColumn();
             SQLiteDatabase db = this.getReadableDatabase();
             Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_ACCOUNT + " WHERE id = ?", new String[]{String.valueOf(id)});
             if (cursor.moveToFirst()) {
+                String status = "ACTIVE";
+                try {
+                    status = cursor.getString(4);
+                } catch (Exception e) {
+                    // Status column might not exist
+                }
                 BankAccount account = new BankAccount(
                         cursor.getInt(0),
                         cursor.getString(1),
                         cursor.getDouble(2),
                         cursor.getInt(3),
-                        cursor.getString(4)
+                        status
                 );
                 cursor.close();
                 return account;
