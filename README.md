@@ -5,7 +5,6 @@ A comprehensive Bank Management Android Application that manages customers, bank
 
 ## Student Information
 - **Student ID**: 26937
-- **Project Name**: 26937_midterm_bank
 
 ## Screenshots
 
