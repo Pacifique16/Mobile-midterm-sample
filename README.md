@@ -283,7 +283,7 @@ For any queries regarding this project, please contact through the university po
 
 ---
 
-**Developed by**: Student 26937  
+**Developed by Student:** 26937  
 **Course**: Mobile Programming  
 **Institution**: AUCA  
 **Semester**: 8
